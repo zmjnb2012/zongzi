@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>粽王争霸 · 玻璃幻境</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background-image: url('bg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      font-family: '宋体', 'SimSun', 'Songti SC', serif;
+      color: #f0ecd8;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      margin: 0;
+    }
+
+    .intro-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: opacity;
+      animation: overlayFadeOut 0.5s ease-out 1.8s forwards;
+    }
+
+    .intro-text {
+      font-size: 3rem;
+      font-family: '宋体', 'SimSun', 'Songti SC', serif;
+      color: #f5d98b;
+      text-shadow: 0 0 30px rgba(230, 180, 60, 0.7);
+      letter-spacing: 6px;
+      will-change: transform, opacity;
+      animation: textPopIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards,
+                 textFloat 2s ease-in-out 0.6s infinite alternate;
+    }
+
+    @keyframes textPopIn {
+      0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes textFloat {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-6px); }
+    }
+
+    @keyframes overlayFadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+
+    .danmaku-float-layer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 50;
+      overflow: hidden;
+    }
+
+    .danmaku-float-item {
+      position: absolute;
+      white-space: nowrap;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #fff;
+      background: rgba(20, 15, 20, 0.3);
+      backdrop-filter: blur(10px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      animation: floatDanmaku 9s linear forwards;
+      pointer-events: auto;
+    }
+
+    .danmaku-float-item.user {
+      background: rgba(200, 164, 92, 0.3);
+      border-color: rgba(255, 215, 0, 0.35);
+    }
+
+    @keyframes floatDanmaku {
+      0% { transform: translateX(105vw); opacity: 0; }
+      3% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateX(-120%); opacity: 0; }
+    }
+
+    .danmaku-saved {
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      min-height: 50px;
+      max-height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .danmaku-saved .bubble {
+      padding: 6px 14px;
+      border-radius: 18px;
+      font-size: 0.8rem;
+      color: #fff;
+      background: rgba(200, 164, 92, 0.3);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      white-space: nowrap;
+      animation: bubblePop 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+
+    @keyframes bubblePop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .glass {
+      background: rgba(20, 15, 25, 0.25);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      transition: all 0.4s ease;
+    }
+    .glass:hover {
+      background: rgba(30, 20, 30, 0.35);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .container { max-width:480px; margin:0 auto; padding:20px 16px 40px; position:relative; z-index:1; }
+    .header { text-align:center; margin-bottom:20px; }
+    .header h1 { font-size:2.8rem; font-weight:bold; color:#e8d49a; text-shadow:0 4px 20px rgba(0,0,0,0.7); letter-spacing:6px; }
+    .subtitle { color:#b89b6b; font-size:1rem; letter-spacing:3px; border-top:1px solid rgba(200,164,92,0.5); border-bottom:1px solid rgba(200,164,92,0.5); display:inline-block; padding:6px 20px; margin-top:10px; }
+
+    .info-bar { padding:14px 22px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+    .votes-left { font-weight:bold; color:#e8d49a; font-size:1.1rem; display:flex; align-items:center; gap:8px; }
+    .votes-left span { background:rgba(200,164,92,0.3); padding:4px 14px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); }
+
+    .btn { background:rgba(200,164,92,0.85); backdrop-filter:blur(12px); border:1px solid rgba(255,215,0,0.4); color:#1e1e10; font-weight:bold; padding:10px 20px; border-radius:30px; cursor:pointer; font-size:0.9rem; letter-spacing:1px; transition:all 0.3s cubic-bezier(0.25,0.8,0.25,1.3); box-shadow:0 6px 16px rgba(0,0,0,0.5); font-family:'宋体',serif; }
+    .btn:hover { background:rgba(220,180,100,0.95); transform:translateY(-3px); box-shadow:0 12px 24px rgba(0,0,0,0.6); }
+    .btn:active { transform:scale(0.94); transition:all 0.05s; }
+    .btn-outline { background:transparent; border:2px solid rgba(200,164,92,0.8); color:#c8a45c; }
+    .btn:disabled { opacity:0.5; filter:grayscale(0.6); transform:none; }
+
+    .section-title { font-size:1.4rem; font-weight:bold; color:#e8d49a; margin:18px 0 12px; text-align:center; letter-spacing:3px; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+    .section-title::after { content:''; display:block; width:50px; height:2px; background:linear-gradient(90deg,transparent,#c8a45c,transparent); margin:8px auto 0; }
+
+    .candidates { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+    .card { text-align:center; padding:20px 12px; color:#f0ecd8; transition:transform 0.4s cubic-bezier(0.25,0.8,0.25,1.2); }
+    .card:hover { transform:translateY(-12px); }
+
+    .zongzi-icon { width:64px; height:72px; margin:0 auto 16px; position:relative; transition:transform 0.3s ease; filter:drop-shadow(0 6px 14px rgba(0,0,0,0.55)); }
+    .card:hover .zongzi-icon { transform:scale(1.12) rotate(8deg); }
+    .zongzi-body { width:0; height:0; border-left:26px solid transparent; border-right:26px solid transparent; border-bottom:54px solid #d4a76a; margin:0 auto; position:relative; }
+    .zongzi-body::before { content:''; position:absolute; top:-14px; left:-18px; width:36px; height:30px; background:rgba(0,0,0,0.2); border-radius:0 0 0 70%; transform:rotate(-12deg); }
+    .zongzi-body::after { content:''; position:absolute; top:12px; left:8px; width:3px; height:34px; background:rgba(0,0,0,0.3); border-radius:2px; box-shadow:14px 10px 0 rgba(0,0,0,0.18), 6px -2px 0 rgba(255,255,240,0.2); }
+    .grain { position:absolute; background:rgba(255,255,240,0.85); border-radius:2px; }
+    .g1 { width:7px; height:5px; top:18px; left:6px; transform:rotate(12deg); box-shadow:14px 14px 0 rgba(255,255,240,0.65), 8px -8px 0 rgba(255,255,240,0.55); }
+    .g2 { width:5px; height:4px; top:26px; left:14px; transform:rotate(-15deg); box-shadow:10px -4px 0 rgba(255,255,240,0.5); }
+    .g3 { width:6px; height:4px; top:8px; left:10px; transform:rotate(25deg); box-shadow:6px 6px 0 rgba(255,255,240,0.45); }
+    .filling { position:absolute; top:28px; left:2px; width:18px; height:10px; border-radius:50%; opacity:0.6; }
+    .zongzi-rope { width:40px; height:14px; border:2px solid rgba(255,255,240,0.7); border-top:none; border-radius:0 0 22px 22px; margin:-6px auto 0; position:relative; z-index:1; background:rgba(0,0,0,0.15); backdrop-filter:blur(2px); }
+    .zongzi-rope::after { content:''; position:absolute; top:-4px; right:4px; width:8px; height:8px; border:2px solid rgba(255,255,240,0.6); border-radius:50%; background:rgba(0,0,0,0.2); }
+
+    .card .name { font-weight:bold; font-size:1.2rem; margin:8px 0 4px; letter-spacing:1px; }
+    .card .desc { font-size:0.8rem; color:#ccc6b0; margin-bottom:14px; }
+    .card .votes { font-weight:bold; font-size:1.3rem; color:#e8d49a; margin-bottom:12px; }
+
+    .vote-animate { animation:votePop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+    @keyframes votePop { 0%{ transform:scale(1); } 50%{ transform:scale(1.5); color:#ffd700; } 100%{ transform:scale(1); } }
+
+    .rank-list { padding:14px 18px; margin-bottom:20px; }
+    .rank-item { display:flex; align-items:center; justify-content:space-between; padding:12px 10px; border-bottom:1px solid rgba(255,255,255,0.08); border-radius:18px; }
+    .rank-item:last-child { border-bottom:none; }
+    .rank-item:hover { background:rgba(255,255,255,0.06); }
+    .rank-num { width:30px; height:30px; background:rgba(200,164,92,0.8); backdrop-filter:blur(12px); color:#1e1e10; border-radius:50%; text-align:center; line-height:30px; font-weight:bold; margin-right:14px; border:1px solid rgba(255,255,240,0.4); }
+    .rank-info { flex:1; }
+    .rank-name { font-weight:bold; }
+    .rank-desc { font-size:0.8rem; color:#ccc6b0; display:block; }
+    .rank-votes { color:#e8d49a; font-weight:bold; }
+
+    .danmaku-send {
+      margin: 4px 0 12px;
+      display: flex;
+      gap: 10px;
+    }
+    .danmaku-send input {
+      flex: 1;
+      padding: 10px 18px;
+      border-radius: 28px;
+      border: 1px solid rgba(200, 164, 92, 0.5);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(15px);
+      color: #fff;
+      outline: none;
+      font-family: '宋体', serif;
+    }
+    .danmaku-send input::placeholder { color: #aaa; }
+
+    .nominate-area { margin-top:14px; display:flex; gap:10px; }
+    .nominate-area input { flex:1; padding:12px 20px; border-radius:30px; border:1px solid rgba(200,164,92,0.5); background:rgba(0,0,0,0.4); backdrop-filter:blur(15px); color:#fff; outline:none; font-family:'宋体',serif; }
+
+    .buy-area { margin-top:20px; text-align:center; padding:22px; }
+    .buy-link { color:#e8d49a; font-weight:bold; text-decoration:underline; }
+    .footer { text-align:center; margin-top:20px; color:#999; font-size:0.9rem; }
+
+    /* ---------- 广告弹窗 ---------- */
+    .ad-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(12px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .ad-modal .ad-card {
+      background: rgba(30, 25, 20, 0.9);
+      backdrop-filter: blur(30px);
+      border-radius: 28px;
+      padding: 28px 22px;
+      text-align: center;
+      max-width: 340px;
+      width: 88%;
+      border: 1px solid rgba(200, 164, 92, 0.5);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    }
+    .ad-modal .ad-title {
+      font-size: 1.1rem;
+      color: #aaa;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    /* 谷歌广告位容器 */
+    .ad-modal .ad-slot {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+    .ad-modal .countdown {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 12px;
+    }
+    .ad-modal .close-ad-btn {
+      padding: 8px 24px;
+      font-size: 0.85rem;
+      opacity: 0.5;
+      cursor: default;
+      transition: all 0.3s;
+    }
+    .ad-modal .close-ad-btn.active {
+      opacity: 1;
+      cursor: pointer;
+      background: #c8a45c;
+      color: #1e1e10;
+      font-weight: bold;
+    }
+
+    /* 身份卡弹窗 */
+    .card-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card-modal .card-image {
+      max-width: 90%;
+      border-radius: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      border: 2px solid rgba(200, 164, 92, 0.5);
+    }
+    .card-modal .close-btn {
+      padding: 10px 30px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-text">端午节快乐</div>
+  </div>
+
+  <div class="danmaku-float-layer" id="floatLayer"></div>
+
+  <div class="container">
+    <div class="header">
+      <h1>粽王争霸</h1>
+      <p class="subtitle">全国粽子口味之王 · 由你决定</p>
+    </div>
+
+    <div class="info-bar glass">
+      <span class="votes-left">🎫 剩余 <span id="rv">3</span> 票</span>
+      <button class="btn" id="wa">看广告 +1票</button>
+    </div>
+
+    <div class="danmaku-saved glass" id="danmakuSaved"></div>
+
+    <div class="danmaku-send">
+      <input type="text" id="danmakuInput" placeholder="发表看法，弹幕飘过屏幕...">
+      <button class="btn" id="sendDanmaku">发送</button>
+    </div>
+
+    <div class="section-title">种子选手</div>
+    <div class="candidates" id="cc"></div>
+
+    <div class="section-title">实时战况</div>
+    <div class="rank-list glass" id="rl"></div>
+
+    <div class="section-title">提名新口味</div>
+    <div class="nominate-area">
+      <input type="text" id="nf" placeholder="输入口味，如榴莲粽...">
+      <button class="btn btn-outline" id="nb">提名</button>
+    </div>
+
+    <div class="share-area" style="text-align:center; margin-top:20px;">
+      <button class="btn" id="gc">生成我的口味身份卡</button>
+    </div>
+
+    <div class="buy-area glass">
+      <h3 style="color:#e8d49a;">🛒 投票累了，带一盒回家</h3>
+      <p style="color:#ddd; margin:10px 0;">冠军口味粽子礼盒，限时特惠</p>
+      <!-- 替换为你的淘宝联盟链接 -->
+      <a class="buy-link" href="#" target="_blank">👉 点击购买端午粽子礼盒</a>
+    </div>
+
+    <div class="footer">粽横四海 · 口味争霸</div>
+  </div>
+
+  <!-- 身份卡弹窗 -->
+  <div id="cardModal" class="card-modal" style="display:none;">
+    <img id="cardImage" class="card-image" src="" alt="身份卡">
+    <button class="btn close-btn" id="closeCardModal">关闭</button>
+  </div>
+
+  <!-- 谷歌广告弹窗 -->
+  <div id="adModal" class="ad-modal" style="display:none;">
+    <div class="ad-card">
+      <div class="ad-title">📢 支持我们 · 广告时间</div>
+      <!-- ========== 谷歌广告位 ========== -->
+      <!-- 拿到AdSense代码后，替换下面这一整行 -->
+      <div class="ad-slot" id="googleAdSlot">
+        <!-- 这里粘贴 Google AdSense 广告代码 -->
+        <p>广告加载中...</p>
+      </div>
+      <!-- ================================= -->
+      <div class="countdown">⏱ 广告浏览 <span id="adCountdown">5</span> 秒后可关闭</div>
+    </div>
+    <button class="btn close-ad-btn" id="closeAdBtn" disabled>关闭 (+1票)</button>
+  </div>
+
+  <script>
+    // 开场动画
+    setTimeout(() => {
+      const intro = document.getElementById('introOverlay');
+      if (intro) intro.remove();
+    }, 2400);
+
+    // ---------- 敏感词过滤 ----------
+    const forbiddenWords = [
+      '傻逼', '尼玛', '操你', '妈逼', '草泥马', 'fuck', 'shit', 'sb', 'cnm',
+      '垃圾', '废物', '去死', '滚', '脑残', '弱智', '智障', '白痴', '狗屎'
+    ];
+
+    function containsForbidden(text) {
+      const lower = text.toLowerCase();
+      return forbiddenWords.some(word => lower.includes(word));
+    }
+
+    // ---------- 弹幕系统 ----------
+    const floatLayer = document.getElementById('floatLayer');
+    const savedWall = document.getElementById('danmakuSaved');
+    const danmakuInput = document.getElementById('danmakuInput');
+    const sendBtn = document.getElementById('sendDanmaku');
+    const MAX_SAVED = 30;
+    const FLOAT_INTERVAL = 2000;
+
+    const presetPool = [
+      '咸蛋黄永远的神！', '甜党不服来战！', '螺蛳粉粽真的是认真的吗',
+      '碱水粽蘸白糖 yyds', '豆沙粽才是经典', '鲜肉粽YYDS',
+      '我家包粽子放板栗', '五花肉腐乳粽谁吃过', '芒果粽是黑暗料理吧',
+      '端午节快乐！', '已投蛋黄鲜肉', '甜粽党集合！',
+      '榴莲粽什么时候上', '必须投鲜肉粽', '豆沙粽冲啊',
+      '碱水粽最高', '螺蛳粉粽yyds', '水果粽才是未来',
+      '蜜枣粽我的童年', '蛋黄鲜肉YYDS'
+    ];
+
+    function sendFloatDanmaku(text, isUser = false) {
+      const item = document.createElement('div');
+      item.className = 'danmaku-float-item';
+      if (isUser) item.classList.add('user');
+      item.textContent = text;
+      item.style.top = (8 + Math.random() * 75) + '%';
+      item.style.animationDuration = (7 + Math.random() * 6) + 's';
+      floatLayer.appendChild(item);
+      item.addEventListener('animationend', () => item.remove());
+    }
+
+    function saveToWall(text) {
+      const bubbles = savedWall.querySelectorAll('.bubble');
+      if (bubbles.length >= MAX_SAVED) {
+        bubbles[0].remove();
+      }
+      const bubble = document.createElement('span');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+      savedWall.appendChild(bubble);
+      savedWall.scrollTop = savedWall.scrollHeight;
+    }
+
+    function sendDanmaku() {
+      const text = danmakuInput.value.trim();
+      if (!text) return;
+      if (text.length > 40) {
+        alert('最多40个字哦');
+        return;
+      }
+      if (containsForbidden(text)) {
+        alert('请文明发言，弹幕已屏蔽');
+        danmakuInput.value = '';
+        return;
+      }
+      sendFloatDanmaku(text, true);
+      saveToWall(text);
+      danmakuInput.value = '';
+    }
+
+    sendBtn.addEventListener('click', sendDanmaku);
+    danmakuInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendDanmaku();
+    });
+
+    function autoFloat() {
+      const text = presetPool[Math.floor(Math.random() * presetPool.length)];
+      sendFloatDanmaku(text, false);
+    }
+
+    setTimeout(() => {
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => autoFloat(), i * 400);
+      }
+      setInterval(autoFloat, FLOAT_INTERVAL);
+    }, 2600);
+
+    // ---------- 粽子数据 ----------
+    const colorMap = {
+      '经典鲜肉粽': { body: '#c4956a', filling: '#8B5E3C' },
+      '蛋黄鲜肉粽': { body: '#e0a742', filling: '#FFB347' },
+      '蜜枣甜粽': { body: '#b84c2a', filling: '#C7512E' },
+      '豆沙粽': { body: '#7d2d2d', filling: '#4A1A1A' },
+      '五花肉腐乳粽': { body: '#a6522d', filling: '#D2691E' },
+      '水果粽': { body: '#f0a040', filling: '#FFD700' },
+      '碱水白粽': { body: '#e8e0d0', filling: '#FFF8DC' },
+      '螺蛳粉粽': { body: '#5a6b4a', filling: '#3E4F3A' }
+    };
+
+    const df = [
+      {id:'1', name:'经典鲜肉粽', desc:'咸香入味，大众首选', v:0},
+      {id:'2', name:'蛋黄鲜肉粽', desc:'双料爆款，一口满足', v:0},
+      {id:'3', name:'蜜枣甜粽', desc:'传统甜味，软糯甜蜜', v:0},
+      {id:'4', name:'豆沙粽', desc:'绵密香甜，经典搭配', v:0},
+      {id:'5', name:'五花肉腐乳粽', desc:'特色重口，敢试才知', v:0},
+      {id:'6', name:'水果粽', desc:'芒果百香果，新式之选', v:0},
+      {id:'7', name:'碱水白粽', desc:'蘸白糖吃，原味极致', v:0},
+      {id:'8', name:'螺蛳粉粽', desc:'猎奇网红，话题之王', v:0}
+    ];
+
+    let fl = JSON.parse(localStorage.getItem('zf')) || df;
+    const td = new Date().toDateString();
+    const ld = localStorage.getItem('zd');
+    let tv = (ld === td) ? parseInt(localStorage.getItem('zt') || '0') : 0;
+    let rf = Math.max(0, 3 - tv);
+    let uf = localStorage.getItem('zu') || '';
+
+    function sv() {
+      localStorage.setItem('zf', JSON.stringify(fl));
+      localStorage.setItem('zt', tv);
+      localStorage.setItem('zd', td);
+      if (uf) localStorage.setItem('zu', uf);
+    }
+
+    function uu() {
+      document.getElementById('rv').textContent = rf;
+      document.getElementById('cc').innerHTML = fl.map(f => {
+        const colors = colorMap[f.name] || { body: '#d4a76a', filling: '#a0522d' };
+        return `<div class="card glass">
+                  <div class="zongzi-icon">
+                    <div class="zongzi-body" style="border-bottom-color: ${colors.body};">
+                      <div class="grain g1"></div>
+                      <div class="grain g2"></div>
+                      <div class="grain g3"></div>
+                      <div class="filling" style="background:${colors.filling};"></div>
+                    </div>
+                    <div class="zongzi-rope"></div>
+                  </div>
+                  <div class="name">${f.name}</div>
+                  <div class="desc">${f.desc}</div>
+                  <div class="votes">${f.v} 票</div>
+                  <button class="btn vote-btn" data-id="${f.id}" ${rf <= 0 ? 'disabled' : ''}>投一票</button>
+                </div>`;
+      }).join('');
+
+      document.querySelectorAll('.vote-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (rf <= 0) return alert('今日免费票已用完');
+          const id = this.dataset.id;
+          const flavor = fl.find(f => f.id === id);
+          if (flavor) {
+            flavor.v++;
+            rf--; tv++;
+            uf = flavor.name;
+            sv();
+            uu();
+            const card = this.closest('.card');
+            const votesEl = card.querySelector('.votes');
+            votesEl.classList.add('vote-animate');
+            setTimeout(() => votesEl.classList.remove('vote-animate'), 400);
+          }
+        });
+      });
+
+      const sorted = [...fl].sort((a, b) => b.v - a.v);
+      document.getElementById('rl').innerHTML = sorted.map((f, i) => `
+        <div class="rank-item">
+          <span class="rank-num">${i + 1}</span>
+          <div class="rank-info"><span class="rank-name">${f.name}</span><span class="rank-desc">${f.desc}</span></div>
+          <span class="rank-votes">${f.v} 票</span>
+        </div>
+      `).join('');
+    }
+
+    // ---------- 谷歌广告弹窗逻辑 ----------
+    const adModal = document.getElementById('adModal');
+    const closeAdBtn = document.getElementById('closeAdBtn');
+    const adCountdown = document.getElementById('adCountdown');
+    let adTimer = null;
+
+    document.getElementById('wa').addEventListener('click', () => {
+      // 显示广告弹窗
+      adModal.style.display = 'flex';
+      closeAdBtn.disabled = true;
+      closeAdBtn.classList.remove('active');
+      let seconds = 5;
+      adCountdown.textContent = seconds;
+
+      // 倒计时
+      adTimer = setInterval(() => {
+        seconds--;
+        adCountdown.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(adTimer);
+          closeAdBtn.disabled = false;
+          closeAdBtn.classList.add('active');
+          closeAdBtn.textContent = '关闭 (+1票)';
+        }
+      }, 1000);
+    });
+
+    closeAdBtn.addEventListener('click', () => {
+      if (closeAdBtn.disabled) return;
+      clearInterval(adTimer);
+      adModal.style.display = 'none';
+      rf++;
+      uu();
+    });
+
+    // 点击遮罩不关闭（强制看完广告）
+    adModal.addEventListener('click', (e) => {
+      if (e.target === adModal && !closeAdBtn.disabled) {
+        clearInterval(adTimer);
+        adModal.style.display = 'none';
+        rf++;
+        uu();
+      }
+    });
+
+    // ---------- 提名 ----------
+    document.getElementById('nb').addEventListener('click', () => {
+      const name = document.getElementById('nf').value.trim();
+      if (!name) return alert('请输入口味名称');
+      if (fl.find(f => f.name === name)) return alert('已存在！');
+      fl.push({ id: Date.now().toString(), name, desc: '新晋提名', v: 0 });
+      sv(); uu();
+      document.getElementById('nf').value = '';
+    });
+
+    // ---------- 身份卡生成与弹窗 ----------
+    const cardModal = document.getElementById('cardModal');
+    const cardImage = document.getElementById('cardImage');
+    const closeCardBtn = document.getElementById('closeCardModal');
+
+    function drawIdentityCard(flavorName, votes, rank) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 240;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#2d2416';
+      ctx.fillRect(0, 0, 400, 240);
+      ctx.save();
+      ctx.globalAlpha = 0.1;
+      ctx.fillStyle = '#c8a45c';
+      for (let i = 0; i < 10; i++) {
+        ctx.beginPath();
+        ctx.ellipse(40 + i * 40, 20 + (i % 3) * 30, 15, 30, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      ctx.strokeStyle = '#c8a45c';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(8, 8, 384, 224);
+      ctx.shadowColor = '#e8d49a';
+      ctx.shadowBlur = 10;
+      ctx.strokeStyle = '#e8d49a';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(10, 10, 380, 220);
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#e8d49a';
+      ctx.font = 'bold 26px "宋体", "SimSun", "Songti SC", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('粽王争霸 · 身份卡', 200, 55);
+      ctx.strokeStyle = '#c8a45c';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(60, 70);
+      ctx.lineTo(340, 70);
+      ctx.stroke();
+      ctx.fillStyle = '#f0ecd8';
+      ctx.font = '20px "宋体", "SimSun", serif';
+      ctx.fillText('我最爱：' + flavorName, 200, 105);
+      ctx.font = '18px "宋体", "SimSun", serif';
+      ctx.fillText('当前排名：第 ' + rank + ' 名', 200, 140);
+      ctx.fillText('票数：' + votes + ' 票', 200, 170);
+      ctx.fillStyle = '#b89b6b';
+      ctx.font = '14px "宋体", "SimSun", serif';
+      ctx.fillText('粽横四海 · 口味争霸', 200, 210);
+      return canvas.toDataURL('image/png');
+    }
+
+    document.getElementById('gc').addEventListener('click', () => {
+      if (!uf) return alert('请先投票给你喜欢的口味');
+      const flavor = fl.find(f => f.name === uf);
+      if (!flavor) return;
+      const sorted = [...fl].sort((a,b) => b.v - a.v);
+      const rank = sorted.findIndex(f => f.name === uf) + 1;
+      const imgData = drawIdentityCard(uf, flavor.v, rank);
+      cardImage.src = imgData;
+      cardModal.style.display = 'flex';
+    });
+
+    closeCardBtn.addEventListener('click', () => {
+      cardModal.style.display = 'none';
+    });
+    cardModal.addEventListener('click', (e) => {
+      if (e.target === cardModal) cardModal.style.display = 'none';
+    });
+
+    uu();
+  </script>
+</body>
+</html>
