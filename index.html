@@ -516,7 +516,7 @@
     let uf = '';
     let rf = 3;  // 每天免费票数（简化处理，不存储本地）
     const votesJsonUrl = 'https://raw.githubusercontent.com/zmjnb2012/zongzi/main/votes.json';
-    const dispatchApi = 'https://api.github.com/repos/zmjnb2012/zongzi/dispatches';
+    const dispatchApi = 'https://api.github.com/repos/zmjnb2012/zongzi/issues';
     const githubToken = 'YOUR_GITHUB_TOKEN';
 
     function getDefaultFlavors() {
@@ -569,11 +569,12 @@
           headers: {
             'Accept': 'application/vnd.github+json',
             'Authorization': `token ${githubToken}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'User-Agent': 'zongzi-app'
           },
           body: JSON.stringify({
-            event_type: 'vote',
-            client_payload: { flavorId, body: 'vote: ' + flavorId }
+            title: 'vote',
+            body: 'vote: ' + flavorId
           })
         });
 
