@@ -517,7 +517,7 @@
     let rf = 3;  // 每天免费票数（简化处理，不存储本地）
 
     // jsonblob.com 配置（替换成你的真实地址）
-    const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/你的Blob ID';
+    const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/https://www.npoint.io/docs/0e54dd54edf7bf77eae5 ID';
 
     function getDefaultFlavors() {
       return baseFlavors.map(f => ({ ...f, votes: 0 }));
@@ -539,16 +539,33 @@
 
     async function castVote(flavorId) {
       try {
-        const getRes = await fetch(BLOB_URL);
-        const votes = await getRes.json();
-        votes[flavorId] = (votes[flavorId] || 0) + 1;
-        const putRes = await fetch(BLOB_URL, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(votes)
-        });
+        const currentVotes = flavors.reduce((acc, flavor) => {
+          const card = document.querySelector(`.vote-btn[data-id="${flavor.id}"]`)?.closest('.card');
+          const votesText = card?.querySelector('.votes')?.textContent || '0 票';
+          const votesNum = parseInt(votesText.replace(/[^\d]/g, ''), 10);
+          acc[flavor.id] = Number.isFinite(votesNum) ? votesNum : 0;
+          return acc;
+        }, {});
 
-        return putRes.ok;
+        currentVotes[flavorId] = (currentVotes[flavorId] || 0) + 1;
+
+        flavors = flavors.map(flavor => ({
+          ...flavor,
+          votes: currentVotes[flavor.id] || 0
+        }));
+
+        const votesJson = JSON.stringify(currentVotes, null, 2);
+        const blob = new Blob([votesJson], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = 'votes.json';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+        return true;
       } catch (err) {
         return false;
       }
@@ -584,7 +601,6 @@
           if (success) {
             rf--;
             uf = flavors.find(f => f.id === id)?.name || '';
-            flavors = await loadVotes();
             updateUI();
             const card = document.querySelector(`.vote-btn[data-id="${id}"]`)?.closest('.card');
             const votesEl = card?.querySelector('.votes');
