@@ -2,52 +2,386 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>粽王争霸 · 全网同步版</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍙 粽王争霸 · 全网同步版</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { background-image: url('bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; font-family: '宋体', SimSun, Songti SC, serif; color: #f0ecd8; min-height: 100vh; overflow-x: hidden; position: relative; margin: 0; }
-    .container { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; position: relative; z-index: 1; }
-    .header { text-align: center; margin-bottom: 20px; }
-    .header h1 { font-size: 2.8rem; font-weight: bold; color: #e8d49a; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: 6px; }
-    .subtitle { color: #b89b6b; font-size: 1rem; letter-spacing: 3px; border-top: 1px solid rgba(200,164,92,0.5); border-bottom: 1px solid rgba(200,164,92,0.5); display: inline-block; padding: 6px 20px; margin-top: 10px; }
-    .info-bar { background: rgba(0,0,0,0.3); border-radius: 20px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .votes-left { font-weight: bold; color: #e8d49a; font-size: 1.1rem; }
-    .btn { background: rgba(200,164,92,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.4); color: #1e1e10; font-weight: bold; padding: 12px 22px; border-radius: 30px; cursor: pointer; font-size: 1rem; letter-spacing: 1px; transition: all 0.3s ease; box-shadow: 0 6px 16px rgba(0,0,0,0.5); font-family: '宋体', serif; }
-    .btn:hover { background: rgba(220,180,100,0.95); transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.6); }
-    .btn:active { transform: scale(0.94); }
-    .candidates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; }
-    .card { background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); border-radius: 20px; padding: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.15); transition: transform 0.3s ease; }
-    .card:hover { transform: translateY(-8px); }
-    .card .emoji { font-size: 3rem; display: block; margin-bottom: 6px; }
-    .card .name { font-weight: bold; font-size: 1.1rem; margin-bottom: 4px; }
-    .card .desc { font-size: 0.75rem; color: #ccc; margin-bottom: 10px; }
-    .card .votes { color: #f3d779; font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; }
-    .section-title { font-size: 1.3rem; font-weight: bold; color: #e8d49a; margin: 20px 0 10px; text-align: center; letter-spacing: 2px; }
-    .rank-list { background: rgba(0,0,0,0.2); border-radius: 20px; padding: 12px; margin-bottom: 20px; }
-    .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .rank-num { width: 26px; height: 26px; background: #c8a45c; color: #1a3b2b; border-radius: 50%; text-align: center; line-height: 26px; font-weight: bold; font-size: 0.85rem; margin-right: 10px; }
-    .rank-info { flex: 1; font-weight: bold; }
-    .rank-votes { color: #f3d779; font-weight: bold; }
-    .nominate-area { margin-top: 15px; display: flex; gap: 10px; }
-    .nominate-area input { flex: 1; padding: 12px 20px; border-radius: 30px; border: 1px solid rgba(200,164,92,0.5); background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); color: #fff; outline: none; font-family: '宋体', serif; }
-    .nominate-area input::placeholder { color: #aaa; }
-    .share-area, .buy-area { text-align: center; margin-top: 25px; }
-    .buy-area { background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; }
-    .buy-link { color: #e8d49a; font-weight: bold; text-decoration: underline; cursor: pointer; }
-    .footer { text-align: center; margin-top: 30px; color: #999; font-size: 0.8rem; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC',sans-serif;
+      color:#fff;
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+      background:#000;
+    }
+    /* 开屏动画 - 透明高斯模糊 */
+    .splash-screen{
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.6);
+      backdrop-filter:blur(30px);
+      -webkit-backdrop-filter:blur(30px);
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      animation:splashFade 2.8s ease-out forwards;
+    }
+    .splash-title{
+      font-size:3.5rem;
+      font-weight:800;
+      background:linear-gradient(135deg,#ffd700,#ffb347,#fff,#ffd700);
+      background-size:300% 300%;
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      animation:gradientMove 2.5s ease infinite, splashUp 1.2s ease-out;
+      letter-spacing:6px;
+    }
+    .splash-zongzi{
+      font-size:6rem;
+      animation:bounce 1s ease-out 0.4s both;
+      margin-bottom:24px;
+      filter:drop-shadow(0 10px 30px rgba(255,215,0,0.4));
+    }
+    @keyframes splashFade{
+      0%{opacity:1}
+      60%{opacity:1}
+      100%{opacity:0;pointer-events:none}
+    }
+    @keyframes splashUp{
+      from{opacity:0;transform:translateY(40px) scale(0.9)}
+      to{opacity:1;transform:translateY(0) scale(1)}
+    }
+    @keyframes gradientMove{
+      0%,100%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+    }
+    @keyframes bounce{
+      0%{opacity:0;transform:scale(0)}
+      50%{transform:scale(1.3)}
+      70%{transform:scale(0.95)}
+      100%{opacity:1;transform:scale(1)}
+    }
+    /* 弹幕 */
+    .danmaku-container{
+      position:fixed;
+      top:0;left:0;right:0;
+      height:70%;
+      pointer-events:none;
+      z-index:100;
+      overflow:hidden;
+    }
+    .danmaku{
+      position:absolute;
+      white-space:nowrap;
+      font-size:1.1rem;
+      font-weight:500;
+      text-shadow:0 2px 12px rgba(0,0,0,0.9);
+      animation:danmakuMove 15s linear;
+      color:#fff;
+    }
+    @keyframes danmakuMove{
+      from{transform:translateX(100vw)}
+      to{transform:translateX(-150%)}
+    }
+    /* 清纯美女背景 */
+    .bg-image{
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:url('https://picsum.photos/seed/beauty2024/1920/1080') center/cover no-repeat;
+      filter:blur(15px) brightness(0.45);
+      transform:scale(1.05);
+      z-index:0;
+    }
+    .bg-overlay{
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:linear-gradient(180deg,rgba(15,15,35,0.3) 0%,rgba(10,10,30,0.6) 100%);
+      z-index:1;
+    }
+    .container{
+      max-width:480px;
+      margin:0 auto;
+      padding:24px 16px 50px;
+      position:relative;
+      z-index:10;
+    }
+    /* 极致高斯模糊UI - 去掉内发光 */
+    .header{
+      text-align:center;
+      margin-bottom:24px;
+      padding:26px;
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(35px);
+      -webkit-backdrop-filter:blur(35px);
+      border-radius:26px;
+      border:1px solid rgba(255,255,255,0.14);
+      box-shadow:0 25px 70px rgba(0,0,0,0.35);
+      animation:fadeDown 0.8s ease-out;
+    }
+    .header h1{
+      font-size:2.6rem;
+      font-weight:800;
+      background:linear-gradient(135deg,#ffd700,#ffb347,#ff9500);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      letter-spacing:3px;
+      margin-bottom:10px;
+    }
+    .subtitle{
+      color:rgba(255,255,255,0.6);
+      font-size:0.95rem;
+      letter-spacing:1px;
+      font-weight:500;
+    }
+    .sync-status{
+      text-align:center;
+      color:#34c759;
+      font-size:0.75rem;
+      margin-top:16px;
+      padding:8px 18px;
+      background:rgba(52,199,89,0.1);
+      border-radius:14px;
+      display:inline-block;
+      font-weight:500;
+    }
+    .info-bar{
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(35px);
+      -webkit-backdrop-filter:blur(35px);
+      border-radius:20px;
+      padding:20px 24px;
+      margin-bottom:20px;
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow:0 15px 50px rgba(0,0,0,0.25);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:12px;
+      animation:fadeUp 0.7s ease-out 0.15s both;
+    }
+    .votes-left{
+      font-weight:600;
+      color:#ffd700;
+      font-size:1.1rem;
+    }
+    /* 按钮交互动画增强 */
+    .btn{
+      background:linear-gradient(135deg,rgba(255,215,0,0.92),rgba(255,179,71,0.88));
+      border:none;
+      color:#1a1a2e;
+      font-weight:700;
+      padding:14px 28px;
+      border-radius:16px;
+      cursor:pointer;
+      font-size:0.95rem;
+      transition:all 0.25s cubic-bezier(0.25,0.46,0.45,0.94);
+      box-shadow:0 8px 25px rgba(255,215,0,0.3);
+    }
+    .btn:hover{
+      transform:translateY(-4px) scale(1.03);
+      box-shadow:0 15px 40px rgba(255,215,0,0.45);
+    }
+    .btn:active{transform:scale(0.95)}
+    .btn:disabled{
+      opacity:0.4;
+      cursor:not-allowed;
+      transform:none!important;
+      box-shadow:none;
+    }
+    .danmaku-input-area{
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(35px);
+      border-radius:20px;
+      padding:18px;
+      margin:20px 0;
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow:0 15px 50px rgba(0,0,0,0.25);
+      display:flex;
+      gap:12px;
+      animation:fadeUp 0.7s ease-out 0.3s both;
+    }
+    .danmaku-input-area input{
+      flex:1;
+      padding:14px 20px;
+      border-radius:14px;
+      border:1px solid rgba(255,215,0,0.2);
+      background:rgba(0,0,0,0.2);
+      color:#fff;
+      outline:none;
+      font-size:0.95rem;
+      transition:all 0.3s;
+    }
+    .danmaku-input-area input:focus{
+      border-color:rgba(255,215,0,0.5);
+      box-shadow:0 0 20px rgba(255,215,0,0.15);
+    }
+    .section-title{
+      font-size:1.15rem;
+      font-weight:700;
+      color:#ffd700;
+      margin:30px 0 18px;
+      text-align:center;
+      letter-spacing:1px;
+      animation:fadeIn 0.7s ease-out 0.2s both;
+    }
+    /* 投票卡片 - 极致高斯模糊 + 增强动画 */
+    .candidates{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-bottom:28px;
+    }
+    .card{
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(40px);
+      -webkit-backdrop-filter:blur(40px);
+      border-radius:24px;
+      padding:24px 18px;
+      text-align:center;
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow:0 15px 50px rgba(0,0,0,0.3);
+      transition:all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+      animation:fadeUp 0.7s ease-out;
+    }
+    .card:nth-child(1){animation-delay:0.2s}
+    .card:nth-child(2){animation-delay:0.25s}
+    .card:nth-child(3){animation-delay:0.3s}
+    .card:nth-child(4){animation-delay:0.35s}
+    .card:nth-child(5){animation-delay:0.4s}
+    .card:nth-child(6){animation-delay:0.45s}
+    .card:nth-child(7){animation-delay:0.5s}
+    .card:nth-child(8){animation-delay:0.55s}
+    .card:hover{
+      transform:translateY(-10px) scale(1.04);
+      box-shadow:0 25px 65px rgba(0,0,0,0.45);
+      border-color:rgba(255,215,0,0.3);
+      background:rgba(255,255,255,0.12);
+    }
+    .card .zongzi-icon{
+      font-size:4.2rem;
+      display:block;
+      margin-bottom:12px;
+      filter:drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+      transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .card:hover .zongzi-icon{transform:scale(1.18) rotate(-6deg)}
+    .card .name{
+      font-weight:700;
+      font-size:1.05rem;
+      margin-bottom:6px;
+      color:#fff;
+    }
+    .card .desc{
+      font-size:0.78rem;
+      color:rgba(255,255,255,0.55);
+      margin-bottom:14px;
+    }
+    .card .votes{
+      color:#ffd700;
+      font-weight:800;
+      font-size:1.5rem;
+      margin-bottom:16px;
+      text-shadow:0 2px 15px rgba(255,215,0,0.35);
+    }
+    .card .btn{
+      padding:11px 22px;
+      font-size:0.9rem;
+      border-radius:14px;
+    }
+    .rank-list{
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(35px);
+      border-radius:24px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow:0 15px 50px rgba(0,0,0,0.3);
+      animation:fadeUp 0.7s ease-out 0.4s both;
+    }
+    .rank-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 14px;
+      border-bottom:1px solid rgba(255,255,255,0.07);
+      transition:all 0.25s;
+      border-radius:16px;
+    }
+    .rank-item:last-child{border-bottom:none}
+    .rank-item:hover{
+      background:rgba(255,255,255,0.06);
+      transform:translateX(4px);
+    }
+    .rank-num{
+      width:34px;
+      height:34px;
+      background:linear-gradient(135deg,#ffd700,#ffb347);
+      color:#1a1a2e;
+      border-radius:12px;
+      text-align:center;
+      line-height:34px;
+      font-weight:800;
+      font-size:0.9rem;
+      margin-right:14px;
+      box-shadow:0 6px 16px rgba(255,215,0,0.35);
+      transition:all 0.3s;
+    }
+    .rank-item:first-child .rank-num{
+      background:linear-gradient(135deg,#ffd700,#ff9500);
+      transform:scale(1.1);
+    }
+    .rank-item:hover .rank-num{transform:scale(1.1)}
+    .rank-info{
+      flex:1;
+      font-weight:600;
+      font-size:1rem;
+    }
+    .rank-votes{
+      color:#ffd700;
+      font-weight:800;
+      font-size:1.15rem;
+    }
+    .footer{
+      text-align:center;
+      margin-top:45px;
+      color:rgba(255,255,255,0.45);
+      font-size:0.75rem;
+    }
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
   </style>
 </head>
 <body>
+  <!-- 开屏动画 - 透明高斯模糊 -->
+  <div class="splash-screen">
+    <div class="splash-zongzi">🫔</div>
+    <div class="splash-title">端午节快乐</div>
+  </div>
+
+  <div class="danmaku-container" id="danmakuContainer"></div>
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
+  
   <div class="container">
     <div class="header">
       <h1>🍙 粽王争霸</h1>
       <p class="subtitle">全国粽子口味之王 · 由你决定</p>
+      <div class="sync-status" id="ss">🔄 正在连接云端...</div>
     </div>
 
     <div class="info-bar">
       <span class="votes-left">🎫 剩余 <span id="rv">3</span> 票</span>
       <button class="btn" id="wa">📺 看广告 +1票</button>
+    </div>
+
+    <div class="danmaku-input-area">
+      <input type="text" id="danmakuInput" placeholder="💬 发个弹幕，所有人都能看到...">
+      <button class="btn" id="sendDanmaku">发送</button>
     </div>
 
     <div class="section-title">📋 种子选手</div>
@@ -56,149 +390,228 @@
     <div class="section-title">🏆 实时战况</div>
     <div class="rank-list" id="rl"></div>
 
-    <div class="section-title">🌟 提名新口味</div>
-    <div class="nominate-area">
-      <input type="text" id="nf" placeholder="输入你喜欢的口味，如榴莲粽...">
-      <button class="btn" id="nb">提名</button>
-    </div>
-
-    <div class="share-area">
-      <button class="btn" id="gc">🎴 生成我的口味身份卡</button>
-    </div>
-
-    <div class="buy-area">
-      <h3 style="color:#e8d49a;">🛒 投票累了，带一盒回家</h3>
-      <p style="color:#ddd; font-size:0.9rem;">冠军口味粽子礼盒，限时特惠</p>
-      <a class="buy-link" href="#" target="_blank">👉 点击购买端午粽子礼盒</a>
-    </div>
-
-    <div class="footer">🎋 粽横四海 · 口味争霸</div>
+    <div class="footer">🎋 粽横四海 · 口味争霸 | 云端全网同步</div>
   </div>
 
   <script>
-    // ---------- 你的专属数据库地址 ----------
-    const DB_URL = 'https://jsonblob.com/019ecbed-a807-7a65-b5c5-e89d5895edf3';
-
-    // ---------- 粽子基础数据 ----------
-    const baseFlavors = [
-      {id:'1', name:'经典鲜肉粽', emoji:'🥩', desc:'咸香入味，大众首选'},
-      {id:'2', name:'蛋黄鲜肉粽', emoji:'🥚', desc:'双料爆款，一口满足'},
-      {id:'3', name:'蜜枣甜粽', emoji:'🍬', desc:'传统甜味，软糯甜蜜'},
-      {id:'4', name:'豆沙粽', emoji:'🫘', desc:'绵密香甜，经典搭配'},
-      {id:'5', name:'五花肉腐乳粽', emoji:'🍖', desc:'特色重口，敢试才知'},
-      {id:'6', name:'水果粽', emoji:'🥭', desc:'芒果百香果，新式之选'},
-      {id:'7', name:'碱水白粽', emoji:'🧂', desc:'蘸白糖吃，原味极致'},
-      {id:'8', name:'螺蛳粉粽', emoji:'🐚', desc:'猎奇网红，话题之王'}
+    const DB_BUCKET = 'zongzi-vote-beauty-final';
+    const DB_URL = `https://kvdb.io/${DB_BUCKET}/`;
+    
+    const BAD_WORDS = ['傻逼','操','草','尼玛','你妈','死','垃圾','fuck','shit','bitch'];
+    
+    const DANMAKU_POOL = [
+      '端午节快乐！',
+      '经典鲜肉粽yyds！',
+      '蛋黄才是王道！',
+      '甜粽党报到！',
+      '豆沙粽最香！',
+      '有人敢投螺蛳粉吗？',
+      '咸粽必胜！',
+      '投票投票！',
+      '大家冲啊！',
+      '水果粽YYDS',
+      '白粽蘸糖才是灵魂！',
+      '五花肉yyds！'
     ];
+    
+    const baseFlavors = [
+      {id:'1',name:'经典鲜肉粽',emoji:'🫔',desc:'咸香入味，大众首选'},
+      {id:'2',name:'蛋黄鲜肉粽',emoji:'🫔🥚',desc:'双料爆款，一口满足'},
+      {id:'3',name:'蜜枣甜粽',emoji:'🫔🍬',desc:'传统甜味，软糯甜蜜'},
+      {id:'4',name:'豆沙粽',emoji:'🫔🫘',desc:'绵密香甜，经典搭配'},
+      {id:'5',name:'五花肉腐乳粽',emoji:'🫔🍖',desc:'特色重口，敢试才知'},
+      {id:'6',name:'水果粽',emoji:'🫔🥭',desc:'芒果百香果，新式之选'},
+      {id:'7',name:'碱水白粽',emoji:'🫔',desc:'蘸白糖吃，原味极致'},
+      {id:'8',name:'螺蛳粉粽',emoji:'🫔🐚',desc:'猎奇网红，话题之王'}
+    ];
+    
+    let flavors = baseFlavors.map(f => ({...f,votes:0}));
+    let remainingVotes = 3, isConnected = false, isVoting = false;
+    
+    function getTodayAdCount() {
+      const today = new Date().toDateString();
+      const saved = localStorage.getItem('ad_count_date');
+      if(saved !== today) {
+        localStorage.setItem('ad_count_date', today);
+        localStorage.setItem('ad_count', '0');
+        return 0;
+      }
+      return parseInt(localStorage.getItem('ad_count') || '0');
+    }
+    function addAdCount() {
+      const count = getTodayAdCount() + 1;
+      localStorage.setItem('ad_count', count.toString());
+      return count;
+    }
+    function filterText(text) {
+      let result = text;
+      BAD_WORDS.forEach(word => {
+        result = result.replace(new RegExp(word, 'gi'), '***');
+      });
+      return result;
+    }
 
-    let flavors = baseFlavors.map(f => ({...f, votes: 0}));
-    let remainingVotes = 3;
+    function showDanmaku(text, color = '#fff') {
+      const container = document.getElementById('danmakuContainer');
+      const d = document.createElement('div');
+      d.className = 'danmaku';
+      d.textContent = filterText(text);
+      d.style.top = Math.random() * 60 + 5 + '%';
+      d.style.color = color;
+      container.appendChild(d);
+      setTimeout(() => d.remove(), 15000);
+    }
 
-    // 从云端加载票数
+    function autoDanmaku() {
+      const randomText = DANMAKU_POOL[Math.floor(Math.random() * DANMAKU_POOL.length)];
+      const colors = ['#ffd700','#34c759','#007aff','#ff6b9d','#bf5af2'];
+      showDanmaku(randomText, colors[Math.floor(Math.random() * colors.length)]);
+    }
+
+    async function sendDanmaku(text) {
+      if(!text.trim()) return;
+      try {
+        const getRes = await fetch(DB_URL + 'danmakus');
+        let list = [];
+        if(getRes.status !== 404) list = await getRes.json();
+        list.push({text: filterText(text), time: Date.now()});
+        list = list.slice(-100);
+        await fetch(DB_URL + 'danmakus', {method:'PUT', body:JSON.stringify(list)});
+      } catch(e) {}
+    }
+
+    async function loadDanmakus() {
+      try {
+        const res = await fetch(DB_URL + 'danmakus');
+        if(res.status !== 404) {
+          const list = await res.json();
+          const now = Date.now();
+          list.slice(-8).forEach((d, i) => {
+            if(now - d.time < 120000) {
+              setTimeout(() => showDanmaku(d.text), i * 1500);
+            }
+          });
+        }
+      } catch(e) {}
+    }
+
     async function loadVotes() {
       try {
-        const res = await fetch(DB_URL);
-        if (!res.ok) return;
-        const remoteVotes = await res.json();
-        flavors = baseFlavors.map(f => ({
-          ...f,
-          votes: remoteVotes[f.id] || 0
-        }));
-        updateUI();
-      } catch (err) {
-        console.error('加载数据失败', err);
-      }
-    }
-
-    // 投票（先读后写，自动同步）
-    async function castVote(flavorId) {
-      try {
-        const getRes = await fetch(DB_URL);
-        const currentVotes = await getRes.json();
-        currentVotes[flavorId] = (currentVotes[flavorId] || 0) + 1;
-        
-        const putRes = await fetch(DB_URL, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(currentVotes)
-        });
-        
-        if (putRes.ok) {
-          await loadVotes();
-          remainingVotes--;
-          updateUI();
-          return true;
+        const res = await fetch(DB_URL + 'votes');
+        if(res.status === 404) {
+          const initVotes = {};
+          baseFlavors.forEach(f => initVotes[f.id] = 0);
+          await fetch(DB_URL + 'votes', {method:'PUT', body:JSON.stringify(initVotes)});
+        } else {
+          const remoteVotes = await res.json();
+          flavors.forEach(f => f.votes = remoteVotes[f.id] || 0);
+          updateVotesOnly();
         }
-        return false;
-      } catch (err) {
-        console.error('投票失败', err);
-        return false;
+        isConnected = true;
+        document.getElementById('ss').innerHTML = '✅ 云端已连接 · 全网同步中';
+      } catch(e) {
+        document.getElementById('ss').innerHTML = '⚠️ 同步中...';
       }
     }
 
-    // 界面渲染
-    function updateUI() {
+    function updateVotesOnly() {
       document.getElementById('rv').textContent = remainingVotes;
-      document.getElementById('cc').innerHTML = flavors.map(f => `
-        <div class="card">
-          <span class="emoji">${f.emoji}</span>
-          <div class="name">${f.name}</div>
-          <div class="desc">${f.desc}</div>
-          <div class="votes">${f.votes} 票</div>
-          <button class="btn vote-btn" data-id="${f.id}" ${remainingVotes <= 0 ? 'disabled' : ''}>投一票</button>
-        </div>
-      `).join('');
+      flavors.forEach(f => {
+        const el = document.querySelector(`[data-id="${f.id}"]`);
+        if(el) {
+          const card = el.closest('.card');
+          const voteEl = card.querySelector('.votes');
+          if(voteEl) voteEl.textContent = f.votes + ' 票';
+        }
+      });
+      updateRanking();
+    }
 
-      const sorted = [...flavors].sort((a,b) => b.votes - a.votes);
-      document.getElementById('rl').innerHTML = sorted.map((f, i) => `
+    function updateRanking() {
+      document.getElementById('rl').innerHTML = [...flavors].sort((a,b)=>b.votes-a.votes).map((f,i)=>`
         <div class="rank-item">
           <span class="rank-num">${i+1}</span>
           <span class="rank-info">${f.emoji} ${f.name}</span>
           <span class="rank-votes">${f.votes} 票</span>
         </div>
       `).join('');
-
-      document.querySelectorAll('.vote-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          if (remainingVotes <= 0) return alert('今日免费票已用完');
-          const id = this.dataset.id;
-          const success = await castVote(id);
-          if (!success) alert('投票失败，请重试');
-        });
-      });
     }
 
-    // 初始化
-    (async function init() {
-      await loadVotes();
-      updateUI();
-    })();
+    async function castVote(flavorId) {
+      if(isVoting || !isConnected) return false;
+      isVoting = true;
+      try {
+        const getRes = await fetch(DB_URL + 'votes');
+        const votes = await getRes.json();
+        votes[flavorId] = (votes[flavorId] || 0) + 1;
+        await fetch(DB_URL + 'votes', {method:'PUT', body:JSON.stringify(votes)});
+        await loadVotes();
+        return true;
+      } catch(e) {
+        return false;
+      } finally {
+        isVoting = false;
+      }
+    }
 
-    // 看广告加票
-    document.getElementById('wa').addEventListener('click', () => {
-      alert('📺 广告播放中...（模拟）\n✅ 获得1票！');
+    function initUI() {
+      document.getElementById('cc').innerHTML = flavors.map(f => `
+        <div class="card">
+          <span class="zongzi-icon">${f.emoji}</span>
+          <div class="name">${f.name}</div>
+          <div class="desc">${f.desc}</div>
+          <div class="votes">${f.votes} 票</div>
+          <button class="btn vote-btn" data-id="${f.id}">投一票</button>
+        </div>
+      `).join('');
+      
+      document.querySelectorAll('.vote-btn').forEach(b=>b.onclick=async()=>{
+        if(remainingVotes<=0)return alert('票已用完，点击看广告获取更多票数！');
+        if(await castVote(b.dataset.id)) {
+          remainingVotes--;
+          const flavor = flavors.find(f=>f.id === b.dataset.id);
+          const msg = `我投了${flavor.name}一票！`;
+          sendDanmaku(msg);
+          showDanmaku(msg, '#ffd700');
+        }
+      });
+      updateRanking();
+    }
+
+    document.getElementById('wa').onclick=()=>{
+      const count = getTodayAdCount();
+      if(count >= 5) {
+        alert('今日广告次数已用完（每日限5次）\n明天再来吧！');
+        return;
+      }
+      alert(`📺 广告播放中...（模拟）\n✅ 获得1票！\n今日剩余 ${4-count} 次机会`);
+      addAdCount();
       remainingVotes++;
-      updateUI();
-    });
+      updateVotesOnly();
+    };
 
-    // 提名新口味
-    document.getElementById('nb').addEventListener('click', () => {
-      const name = document.getElementById('nf').value.trim();
-      if (!name) return alert('请输入口味名称');
-      if (flavors.find(f => f.name === name)) return alert('该口味已被提名！');
-      flavors.push({ id: Date.now().toString(), name, emoji: '🌟', desc: '新晋提名', votes: 0 });
-      updateUI();
-      document.getElementById('nf').value = '';
-      alert(`✅ "${name}" 提名成功！`);
-    });
-
-    // 生成身份卡
-    document.getElementById('gc').addEventListener('click', () => {
-      const sorted = [...flavors].sort((a,b) => b.votes - a.votes);
-      const top = sorted[0];
-      if (!top) return alert('暂无投票数据');
-      alert(`🏆 粽王争霸 · 身份卡\n\n👑 当前票王：${top.emoji} ${top.name}\n📊 票数：${top.votes} 票\n\n快分享到朋友圈，为你喜欢的口味拉票吧！`);
-    });
+    document.getElementById('sendDanmaku').onclick = () => {
+      const input = document.getElementById('danmakuInput');
+      const text = input.value.trim();
+      if(text) {
+        sendDanmaku(text);
+        showDanmaku(text);
+        input.value = '';
+      }
+    };
+    document.getElementById('danmakuInput').onkeypress = (e) => {
+      if(e.key === 'Enter') document.getElementById('sendDanmaku').click();
+    };
+    
+    initUI();
+    loadVotes();
+    
+    setTimeout(() => {
+      loadDanmakus();
+      setInterval(autoDanmaku, 3500);
+      setInterval(loadVotes, 3000);
+      setInterval(loadDanmakus, 10000);
+    }, 2800);
   </script>
 </body>
 </html>
