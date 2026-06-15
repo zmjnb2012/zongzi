@@ -515,9 +515,9 @@
     let flavors = [];
     let uf = '';
     let rf = 3;  // 每天免费票数（简化处理，不存储本地）
-    const votesJsonUrl = 'https://raw.githubusercontent.com/zmjnb2012/zongzi/main/votes.json';
-    const dispatchApi = 'https://api.github.com/repos/zmjnb2012/zongzi/issues';
-    const githubToken = 'YOUR_GITHUB_TOKEN';
+
+    // jsonblob.com 配置（替换成你的真实地址）
+    const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/你的Blob ID';
 
     function getDefaultFlavors() {
       return baseFlavors.map(f => ({ ...f, votes: 0 }));
@@ -525,60 +525,30 @@
 
     async function loadVotes() {
       try {
-        const response = await fetch(votesJsonUrl, { cache: 'no-store' });
-        if (!response.ok) throw new Error('load failed');
-
-        const payload = await response.json();
-        const voteMap = {};
-
-        const normalizeItems = (items) => {
-          items.forEach(item => {
-            if (!item) return;
-            const flavorId = String(item.flavorId ?? item.id ?? item.flavor_id ?? '');
-            const votes = Number(item.votes ?? item.count ?? item.value ?? 0);
-            if (flavorId) voteMap[flavorId] = votes;
-          });
-        };
-
-        if (Array.isArray(payload)) {
-          normalizeItems(payload);
-        } else if (payload && typeof payload === 'object') {
-          const source = payload.votes || payload.data || payload.items || payload;
-          if (Array.isArray(source)) {
-            normalizeItems(source);
-          } else {
-            Object.keys(source).forEach(key => {
-              voteMap[String(key)] = Number(source[key] || 0);
-            });
-          }
-        }
-
+        const res = await fetch(BLOB_URL);
+        if (!res.ok) return baseFlavors.map(f => ({...f, votes: 0}));
+        const votes = await res.json();
         return baseFlavors.map(f => ({
           ...f,
-          votes: voteMap[f.id] || 0
+          votes: votes[f.id] || 0
         }));
       } catch (err) {
-        return getDefaultFlavors();
+        return baseFlavors.map(f => ({...f, votes: 0}));
       }
     }
 
     async function castVote(flavorId) {
       try {
-        const response = await fetch(dispatchApi, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/vnd.github+json',
-            'Authorization': `token ${githubToken}`,
-            'Content-Type': 'application/json',
-            'User-Agent': 'zongzi-app'
-          },
-          body: JSON.stringify({
-            title: 'vote',
-            body: 'vote: ' + flavorId
-          })
+        const getRes = await fetch(BLOB_URL);
+        const votes = await getRes.json();
+        votes[flavorId] = (votes[flavorId] || 0) + 1;
+        const putRes = await fetch(BLOB_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(votes)
         });
 
-        return response.ok;
+        return putRes.ok;
       } catch (err) {
         return false;
       }
@@ -614,16 +584,14 @@
           if (success) {
             rf--;
             uf = flavors.find(f => f.id === id)?.name || '';
-            setTimeout(async () => {
-              flavors = await loadVotes();
-              updateUI();
-              const card = document.querySelector(`.vote-btn[data-id="${id}"]`)?.closest('.card');
-              const votesEl = card?.querySelector('.votes');
-              if (votesEl) {
-                votesEl.classList.add('vote-animate');
-                setTimeout(() => votesEl.classList.remove('vote-animate'), 400);
-              }
-            }, 5000);
+            flavors = await loadVotes();
+            updateUI();
+            const card = document.querySelector(`.vote-btn[data-id="${id}"]`)?.closest('.card');
+            const votesEl = card?.querySelector('.votes');
+            if (votesEl) {
+              votesEl.classList.add('vote-animate');
+              setTimeout(() => votesEl.classList.remove('vote-animate'), 400);
+            }
           } else {
             alert('投票失败，请稍后重试');
           }
