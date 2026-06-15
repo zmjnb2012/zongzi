@@ -1,0 +1,37 @@
+name: 投票更新
+on:
+  issues:
+    types: [opened]
+jobs:
+  update:
+    if: startsWith(github.event.issue.title, '__VOTE__')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 更新票数
+        run: |
+          body="${{ github.event.issue.body }}"
+          id=$(echo "$body" | cut -d':' -f2 | tr -d ' ')
+          
+          if [ -f votes.json ]; then
+            votes=$(cat votes.json)
+          else
+            votes="{}"
+          fi
+          
+          python3 -c "
+import json
+v = json.loads('$votes')
+v['$id'] = v.get('$id', 0) + 1
+with open('votes.json', 'w') as f:
+    json.dump(v, f)
+"
+          git config user.name 'bot'
+          git config user.email 'bot@github.com'
+          git add votes.json
+          git diff --staged --quiet || git commit -m 'vote'
+          git push
+      - name: 关闭Issue
+        run: gh issue close ${{ github.event.issue.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
