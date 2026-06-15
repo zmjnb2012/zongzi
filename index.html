@@ -488,7 +488,7 @@
       '螺蛳粉粽': { body: '#5a6b4a', filling: '#3E4F3A' }
     };
 
-    const df = [
+    const baseFlavors = [
       {id:'1', name:'经典鲜肉粽', desc:'咸香入味，大众首选', v:0},
       {id:'2', name:'蛋黄鲜肉粽', desc:'双料爆款，一口满足', v:0},
       {id:'3', name:'蜜枣甜粽', desc:'传统甜味，软糯甜蜜', v:0},
@@ -499,7 +499,48 @@
       {id:'8', name:'螺蛳粉粽', desc:'猎奇网红，话题之王', v:0}
     ];
 
-    let fl = JSON.parse(localStorage.getItem('zf')) || df;
+    // 安全投票接口（不需要任何令牌）
+    const REPO_OWNER = 'zmjnb2012';
+    const REPO_NAME = 'zongzi';
+
+    // 加载票数（直接从公开的 votes.json 文件读取）
+    async function loadVotes() {
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/votes.json`);
+        if (!res.ok) return baseFlavors.map(f => ({ ...f, votes: 0 }));
+        const votes = await res.json();
+        return baseFlavors.map(f => ({
+          ...f,
+          votes: votes[f.id] || 0
+        }));
+      } catch (err) {
+        console.error('加载失败', err);
+        return baseFlavors.map(f => ({ ...f, votes: 0 }));
+      }
+    }
+
+    // 投票（创建 Issue 触发 Actions，不需要令牌）
+    async function castVote(flavorId) {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: '__VOTE_TRIGGER__',
+            body: `flavorId: ${flavorId}`
+          })
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('投票失败', err);
+        return false;
+      }
+    }
+
+    let fl = baseFlavors.map(f => ({ ...f, votes: 0 }));
     const td = new Date().toDateString();
     const ld = localStorage.getItem('zd');
     let tv = (ld === td) ? parseInt(localStorage.getItem('zt') || '0') : 0;
@@ -507,7 +548,6 @@
     let uf = localStorage.getItem('zu') || '';
 
     function sv() {
-      localStorage.setItem('zf', JSON.stringify(fl));
       localStorage.setItem('zt', tv);
       localStorage.setItem('zd', td);
       if (uf) localStorage.setItem('zu', uf);
@@ -529,36 +569,39 @@
                   </div>
                   <div class="name">${f.name}</div>
                   <div class="desc">${f.desc}</div>
-                  <div class="votes">${f.v} 票</div>
+                  <div class="votes">${f.votes} 票</div>
                   <button class="btn vote-btn" data-id="${f.id}" ${rf <= 0 ? 'disabled' : ''}>投一票</button>
                 </div>`;
       }).join('');
 
       document.querySelectorAll('.vote-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
           if (rf <= 0) return alert('今日免费票已用完');
           const id = this.dataset.id;
           const flavor = fl.find(f => f.id === id);
           if (flavor) {
-            flavor.v++;
+            const success = await castVote(id);
+            if (!success) return alert('投票失败，请稍后重试');
             rf--; tv++;
             uf = flavor.name;
             sv();
+            fl = await loadVotes();
             uu();
-            const card = this.closest('.card');
-            const votesEl = card.querySelector('.votes');
-            votesEl.classList.add('vote-animate');
-            setTimeout(() => votesEl.classList.remove('vote-animate'), 400);
+            const votesEl = document.querySelector(`.vote-btn[data-id="${id}"]`)?.closest('.card')?.querySelector('.votes');
+            if (votesEl) {
+              votesEl.classList.add('vote-animate');
+              setTimeout(() => votesEl.classList.remove('vote-animate'), 400);
+            }
           }
         });
       });
 
-      const sorted = [...fl].sort((a, b) => b.v - a.v);
+      const sorted = [...fl].sort((a, b) => b.votes - a.votes);
       document.getElementById('rl').innerHTML = sorted.map((f, i) => `
         <div class="rank-item">
           <span class="rank-num">${i + 1}</span>
           <div class="rank-info"><span class="rank-name">${f.name}</span><span class="rank-desc">${f.desc}</span></div>
-          <span class="rank-votes">${f.v} 票</span>
+          <span class="rank-votes">${f.votes} 票</span>
         </div>
       `).join('');
     }
@@ -613,7 +656,7 @@
       const name = document.getElementById('nf').value.trim();
       if (!name) return alert('请输入口味名称');
       if (fl.find(f => f.name === name)) return alert('已存在！');
-      fl.push({ id: Date.now().toString(), name, desc: '新晋提名', v: 0 });
+      fl.push({ id: Date.now().toString(), name, desc: '新晋提名', votes: 0 });
       sv(); uu();
       document.getElementById('nf').value = '';
     });
@@ -675,9 +718,9 @@
       if (!uf) return alert('请先投票给你喜欢的口味');
       const flavor = fl.find(f => f.name === uf);
       if (!flavor) return;
-      const sorted = [...fl].sort((a,b) => b.v - a.v);
+      const sorted = [...fl].sort((a,b) => b.votes - a.votes);
       const rank = sorted.findIndex(f => f.name === uf) + 1;
-      const imgData = drawIdentityCard(uf, flavor.v, rank);
+      const imgData = drawIdentityCard(uf, flavor.votes, rank);
       cardImage.src = imgData;
       cardModal.style.display = 'flex';
     });
@@ -689,7 +732,10 @@
       if (e.target === cardModal) cardModal.style.display = 'none';
     });
 
-    uu();
+    loadVotes().then(votes => {
+      fl = votes;
+      uu();
+    });
   </script>
 </body>
 </html>
