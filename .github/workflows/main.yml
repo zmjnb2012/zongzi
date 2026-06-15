@@ -16,33 +16,29 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          # 读取现有投票数据
           if [ -f votes.json ]; then
             votes=$(cat votes.json)
           else
             votes="{}"
           fi
 
-          # 从 Issue 正文中提取粽子 ID
           body="${{ github.event.issue.body }}"
           flavor_id=$(echo "$body" | grep -oP 'flavorId:\s*\K.*')
 
           if [ -n "$flavor_id" ]; then
-            # 更新票数
             python3 -c "
 import json
 votes = json.loads('$votes')
 votes['$flavor_id'] = votes.get('$flavor_id', 0) + 1
 with open('votes.json', 'w') as f:
     json.dump(votes, f)
-            "
+"
           fi
 
-          # 提交更新
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
+          git config user.name 'GitHub Action'
+          git config user.email 'action@github.com'
           git add votes.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "更新投票数据"
+          git diff --quiet && git diff --staged --quiet || git commit -m '更新投票数据'
           git push
 
       - name: 关闭 Issue
