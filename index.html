@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>粽王争霸 · 玻璃幻境</title>
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.0/dist/av-min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -150,7 +151,13 @@
     .votes-left { font-weight:bold; color:#e8d49a; font-size:1.1rem; display:flex; align-items:center; gap:8px; }
     .votes-left span { background:rgba(200,164,92,0.3); padding:4px 14px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); }
 
-    .btn { background:rgba(200,164,92,0.85); backdrop-filter:blur(12px); border:1px solid rgba(255,215,0,0.4); color:#1e1e10; font-weight:bold; padding:12px 22px; border-radius:30px; cursor:pointer; font-size:1rem; min-height:44px; letter-spacing:1px; transition:all 0.3s cubic-bezier(0.25,0.8,0.25,1.3); box-shadow:0 6px 16px rgba(0,0,0,0.5); font-family:'宋体',serif; }
+    .btn {
+      background:rgba(200,164,92,0.85); backdrop-filter:blur(12px); border:1px solid rgba(255,215,0,0.4);
+      color:#1e1e10; font-weight:bold; padding:12px 22px; border-radius:30px; cursor:pointer;
+      font-size:1rem; min-height:44px; letter-spacing:1px;
+      transition:all 0.3s cubic-bezier(0.25,0.8,0.25,1.3);
+      box-shadow:0 6px 16px rgba(0,0,0,0.5); font-family:'宋体',serif;
+    }
     .btn:hover { background:rgba(220,180,100,0.95); transform:translateY(-3px); box-shadow:0 12px 24px rgba(0,0,0,0.6); }
     .btn:active { transform:scale(0.94); transition:all 0.05s; }
     .btn-outline { background:transparent; border:2px solid rgba(200,164,92,0.8); color:#c8a45c; }
@@ -160,6 +167,9 @@
     .section-title::after { content:''; display:block; width:50px; height:2px; background:linear-gradient(90deg,transparent,#c8a45c,transparent); margin:8px auto 0; }
 
     .candidates { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+    @media (max-width: 480px) {
+      .candidates { grid-template-columns: 1fr; gap: 12px; }
+    }
     .card { text-align:center; padding:20px 12px; color:#f0ecd8; transition:transform 0.4s cubic-bezier(0.25,0.8,0.25,1.2); }
     .card:hover { transform:translateY(-12px); }
 
@@ -218,7 +228,7 @@
     .buy-link { color:#e8d49a; font-weight:bold; text-decoration:underline; }
     .footer { text-align:center; margin-top:20px; color:#999; font-size:0.9rem; }
 
-    /* ---------- 广告弹窗 ---------- */
+    /* 广告弹窗 */
     .ad-modal {
       position: fixed;
       top: 0; left: 0;
@@ -240,6 +250,9 @@
       text-align: center;
       max-width: 340px;
       width: 88%;
+      max-width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
       border: 1px solid rgba(200, 164, 92, 0.5);
       box-shadow: 0 20px 50px rgba(0,0,0,0.7);
     }
@@ -249,7 +262,6 @@
       margin-bottom: 12px;
       letter-spacing: 1px;
     }
-    /* 谷歌广告位容器 */
     .ad-modal .ad-slot {
       background: rgba(255,255,255,0.05);
       border-radius: 16px;
@@ -297,8 +309,6 @@
     }
     .card-modal .card-image {
       max-width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
       border-radius: 28px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.8);
       border: 2px solid rgba(200, 164, 92, 0.5);
@@ -306,13 +316,6 @@
     .card-modal .close-btn {
       padding: 10px 30px;
       font-size: 1rem;
-    }
-
-    @media (max-width: 480px) {
-      .candidates { grid-template-columns: 1fr; gap: 12px; }
-      .btn { padding: 12px 22px; font-size: 1rem; min-height: 44px; }
-      .ad-modal .ad-card { max-width: 90%; max-height: 80vh; overflow-y: auto; }
-      .card-modal .card-image { max-width: 90%; max-height: 80vh; overflow-y: auto; }
     }
   </style>
 </head>
@@ -360,8 +363,7 @@
     <div class="buy-area glass">
       <h3 style="color:#e8d49a;">🛒 投票累了，带一盒回家</h3>
       <p style="color:#ddd; margin:10px 0;">冠军口味粽子礼盒，限时特惠</p>
-      <!-- 替换为你的淘宝联盟链接 -->
-      <a class="buy-link" href="https://m.tb.cn/h.Rnb8bT4" target="_blank">👉 点击购买端午粽子礼盒</a>
+      <a class="buy-link" href="#" target="_blank">👉 点击购买端午粽子礼盒</a>
     </div>
 
     <div class="footer">粽横四海 · 口味争霸</div>
@@ -373,27 +375,28 @@
     <button class="btn close-btn" id="closeCardModal">关闭</button>
   </div>
 
-  <!-- 谷歌广告弹窗 -->
+  <!-- 广告弹窗 -->
   <div id="adModal" class="ad-modal" style="display:none;">
     <div class="ad-card">
-      <div class="ad-title">📢 支持我们 · 广告时间</div>
-      <!-- ========== 谷歌广告位 ========== -->
-      <!-- 拿到AdSense代码后，替换下面这一整行 -->
-      <div class="ad-slot" id="googleAdSlot">
-        <div style="background:rgba(0,0,0,0.3); border-radius:16px; padding:20px; text-align:center;">
-          <p style="font-size:1.2rem; color:#f3d779; margin-bottom:8px;">🎋 端午特供 · 粽王礼盒</p>
-          <p style="color:#ddd; font-size:0.9rem; margin-bottom:12px;">冠军口味手工鲜肉粽，限时包邮</p>
-          <a href="https://m.tb.cn/h.Rnb8bT" target="_blank" style="display:inline-block; background:#c8a45c; color:#1a1a1a; padding:12px 28px; border-radius:30px; font-weight:bold; text-decoration:none; font-size:1rem;">👉 去看看</a>
-          <p style="color:#aaa; font-size:0.75rem; margin-top:8px;">广告 · 购买后我们可能会获得佣金</p>
-        </div>
+      <div class="ad-title">🎋 端午特供</div>
+      <div style="background:rgba(0,0,0,0.3); border-radius:16px; padding:20px; text-align:center;">
+        <p style="font-size:1.2rem; color:#f3d779; margin-bottom:8px;">粽王礼盒 · 冠军口味</p>
+        <p style="color:#ddd; font-size:0.9rem; margin-bottom:12px;">手工鲜肉粽，限时包邮</p>
+        <a href="https://m.tb.cn/h.Rnb8bT" target="_blank" style="display:inline-block; background:#c8a45c; color:#1a1a1a; padding:12px 28px; border-radius:30px; font-weight:bold; text-decoration:none; font-size:1rem;">👉 去看看</a>
+        <p style="color:#aaa; font-size:0.75rem; margin-top:8px;">广告 · 购买后我们可能会获得佣金</p>
       </div>
-      <!-- ================================= -->
       <div class="countdown">⏱ 广告浏览 <span id="adCountdown">5</span> 秒后可关闭</div>
     </div>
     <button class="btn close-ad-btn" id="closeAdBtn" disabled>关闭 (+1票)</button>
   </div>
 
   <script>
+    AV.init({
+      appId: "你的AppID",
+      appKey: "你的AppKey",
+      serverURL: "你的服务器地址"
+    });
+
     // 开场动画
     setTimeout(() => {
       const intro = document.getElementById('introOverlay');
@@ -486,7 +489,18 @@
       setInterval(autoFloat, FLOAT_INTERVAL);
     }, 2600);
 
-    // ---------- 粽子数据 ----------
+    // ---------- 粽子数据（不包含票数，票数由云端决定） ----------
+    const baseFlavors = [
+      {id:'1', name:'经典鲜肉粽', desc:'咸香入味，大众首选'},
+      {id:'2', name:'蛋黄鲜肉粽', desc:'双料爆款，一口满足'},
+      {id:'3', name:'蜜枣甜粽', desc:'传统甜味，软糯甜蜜'},
+      {id:'4', name:'豆沙粽', desc:'绵密香甜，经典搭配'},
+      {id:'5', name:'五花肉腐乳粽', desc:'特色重口，敢试才知'},
+      {id:'6', name:'水果粽', desc:'芒果百香果，新式之选'},
+      {id:'7', name:'碱水白粽', desc:'蘸白糖吃，原味极致'},
+      {id:'8', name:'螺蛳粉粽', desc:'猎奇网红，话题之王'}
+    ];
+
     const colorMap = {
       '经典鲜肉粽': { body: '#c4956a', filling: '#8B5E3C' },
       '蛋黄鲜肉粽': { body: '#e0a742', filling: '#FFB347' },
@@ -498,74 +512,81 @@
       '螺蛳粉粽': { body: '#5a6b4a', filling: '#3E4F3A' }
     };
 
-    const baseFlavors = [
-      {id:'1', name:'经典鲜肉粽', desc:'咸香入味，大众首选', v:0},
-      {id:'2', name:'蛋黄鲜肉粽', desc:'双料爆款，一口满足', v:0},
-      {id:'3', name:'蜜枣甜粽', desc:'传统甜味，软糯甜蜜', v:0},
-      {id:'4', name:'豆沙粽', desc:'绵密香甜，经典搭配', v:0},
-      {id:'5', name:'五花肉腐乳粽', desc:'特色重口，敢试才知', v:0},
-      {id:'6', name:'水果粽', desc:'芒果百香果，新式之选', v:0},
-      {id:'7', name:'碱水白粽', desc:'蘸白糖吃，原味极致', v:0},
-      {id:'8', name:'螺蛳粉粽', desc:'猎奇网红，话题之王', v:0}
-    ];
+    let flavors = [];
+    let uf = '';
+    let rf = 3;  // 每天免费票数（简化处理，不存储本地）
+    const votesJsonUrl = 'https://raw.githubusercontent.com/zmjnb2012/zongzi/main/votes.json';
+    const dispatchApi = 'https://api.github.com/repos/zmjnb2012/zongzi/dispatches';
+    const githubToken = 'YOUR_GITHUB_TOKEN';
 
-    // 安全投票接口（不需要任何令牌）
-    const REPO_OWNER = 'zmjnb2012';
-    const REPO_NAME = 'zongzi';
+    function getDefaultFlavors() {
+      return baseFlavors.map(f => ({ ...f, votes: 0 }));
+    }
 
-    // 加载票数（直接从公开的 votes.json 文件读取）
     async function loadVotes() {
       try {
-        const res = await fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/votes.json`);
-        if (!res.ok) return baseFlavors.map(f => ({ ...f, votes: 0 }));
-        const votes = await res.json();
+        const response = await fetch(votesJsonUrl, { cache: 'no-store' });
+        if (!response.ok) throw new Error('load failed');
+
+        const payload = await response.json();
+        const voteMap = {};
+
+        const normalizeItems = (items) => {
+          items.forEach(item => {
+            if (!item) return;
+            const flavorId = String(item.flavorId ?? item.id ?? item.flavor_id ?? '');
+            const votes = Number(item.votes ?? item.count ?? item.value ?? 0);
+            if (flavorId) voteMap[flavorId] = votes;
+          });
+        };
+
+        if (Array.isArray(payload)) {
+          normalizeItems(payload);
+        } else if (payload && typeof payload === 'object') {
+          const source = payload.votes || payload.data || payload.items || payload;
+          if (Array.isArray(source)) {
+            normalizeItems(source);
+          } else {
+            Object.keys(source).forEach(key => {
+              voteMap[String(key)] = Number(source[key] || 0);
+            });
+          }
+        }
+
         return baseFlavors.map(f => ({
           ...f,
-          votes: votes[f.id] || 0
+          votes: voteMap[f.id] || 0
         }));
       } catch (err) {
-        console.error('加载失败', err);
-        return baseFlavors.map(f => ({ ...f, votes: 0 }));
+        return getDefaultFlavors();
       }
     }
 
-    // 投票（创建 Issue 触发 Actions，不需要令牌）
     async function castVote(flavorId) {
       try {
-        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`, {
+        const response = await fetch(dispatchApi, {
           method: 'POST',
           headers: {
             'Accept': 'application/vnd.github+json',
+            'Authorization': `token ${githubToken}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            title: '__VOTE_TRIGGER__',
-            body: `flavorId: ${flavorId}`
+            event_type: 'vote',
+            client_payload: { flavorId, body: 'vote: ' + flavorId }
           })
         });
-        return res.ok;
+
+        return response.ok;
       } catch (err) {
-        console.error('投票失败', err);
         return false;
       }
     }
 
-    let fl = baseFlavors.map(f => ({ ...f, votes: 0 }));
-    const td = new Date().toDateString();
-    const ld = localStorage.getItem('zd');
-    let tv = (ld === td) ? parseInt(localStorage.getItem('zt') || '0') : 0;
-    let rf = Math.max(0, 3 - tv);
-    let uf = localStorage.getItem('zu') || '';
-
-    function sv() {
-      localStorage.setItem('zt', tv);
-      localStorage.setItem('zd', td);
-      if (uf) localStorage.setItem('zu', uf);
-    }
-
-    function uu() {
+    // ---------- UI 更新 ----------
+    function updateUI() {
       document.getElementById('rv').textContent = rf;
-      document.getElementById('cc').innerHTML = fl.map(f => {
+      document.getElementById('cc').innerHTML = flavors.map(f => {
         const colors = colorMap[f.name] || { body: '#d4a76a', filling: '#a0522d' };
         return `<div class="card glass">
                   <div class="zongzi-icon">
@@ -588,25 +609,27 @@
         btn.addEventListener('click', async function() {
           if (rf <= 0) return alert('今日免费票已用完');
           const id = this.dataset.id;
-          const flavor = fl.find(f => f.id === id);
-          if (flavor) {
-            const success = await castVote(id);
-            if (!success) return alert('投票失败，请稍后重试');
-            rf--; tv++;
-            uf = flavor.name;
-            sv();
-            fl = await loadVotes();
-            uu();
-            const votesEl = document.querySelector(`.vote-btn[data-id="${id}"]`)?.closest('.card')?.querySelector('.votes');
-            if (votesEl) {
-              votesEl.classList.add('vote-animate');
-              setTimeout(() => votesEl.classList.remove('vote-animate'), 400);
-            }
+          const success = await castVote(id);
+          if (success) {
+            rf--;
+            uf = flavors.find(f => f.id === id)?.name || '';
+            setTimeout(async () => {
+              flavors = await loadVotes();
+              updateUI();
+              const card = document.querySelector(`.vote-btn[data-id="${id}"]`)?.closest('.card');
+              const votesEl = card?.querySelector('.votes');
+              if (votesEl) {
+                votesEl.classList.add('vote-animate');
+                setTimeout(() => votesEl.classList.remove('vote-animate'), 400);
+              }
+            }, 5000);
+          } else {
+            alert('投票失败，请稍后重试');
           }
         });
       });
 
-      const sorted = [...fl].sort((a, b) => b.votes - a.votes);
+      const sorted = [...flavors].sort((a, b) => b.votes - a.votes);
       document.getElementById('rl').innerHTML = sorted.map((f, i) => `
         <div class="rank-item">
           <span class="rank-num">${i + 1}</span>
@@ -616,21 +639,18 @@
       `).join('');
     }
 
-    // ---------- 谷歌广告弹窗逻辑 ----------
+    // ---------- 广告弹窗逻辑 ----------
     const adModal = document.getElementById('adModal');
     const closeAdBtn = document.getElementById('closeAdBtn');
     const adCountdown = document.getElementById('adCountdown');
     let adTimer = null;
 
     document.getElementById('wa').addEventListener('click', () => {
-      // 显示广告弹窗
       adModal.style.display = 'flex';
       closeAdBtn.disabled = true;
       closeAdBtn.classList.remove('active');
       let seconds = 5;
       adCountdown.textContent = seconds;
-
-      // 倒计时
       adTimer = setInterval(() => {
         seconds--;
         adCountdown.textContent = seconds;
@@ -648,30 +668,21 @@
       clearInterval(adTimer);
       adModal.style.display = 'none';
       rf++;
-      uu();
+      updateUI();
     });
 
-    // 点击遮罩不关闭（强制看完广告）
-    adModal.addEventListener('click', (e) => {
-      if (e.target === adModal && !closeAdBtn.disabled) {
-        clearInterval(adTimer);
-        adModal.style.display = 'none';
-        rf++;
-        uu();
-      }
-    });
-
-    // ---------- 提名 ----------
+    // 提名
     document.getElementById('nb').addEventListener('click', () => {
       const name = document.getElementById('nf').value.trim();
       if (!name) return alert('请输入口味名称');
-      if (fl.find(f => f.name === name)) return alert('已存在！');
-      fl.push({ id: Date.now().toString(), name, desc: '新晋提名', votes: 0 });
-      sv(); uu();
+      if (flavors.find(f => f.name === name)) return alert('已存在！');
+      // 新提名不加票数，仅展示（不持久化，仅当前会话）
+      flavors.push({ id: Date.now().toString(), name, desc: '新晋提名', votes: 0 });
+      updateUI();
       document.getElementById('nf').value = '';
     });
 
-    // ---------- 身份卡生成与弹窗 ----------
+    // ---------- 身份卡生成 ----------
     const cardModal = document.getElementById('cardModal');
     const cardImage = document.getElementById('cardImage');
     const closeCardBtn = document.getElementById('closeCardModal');
@@ -683,40 +694,17 @@
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#2d2416';
       ctx.fillRect(0, 0, 400, 240);
-      ctx.save();
-      ctx.globalAlpha = 0.1;
-      ctx.fillStyle = '#c8a45c';
-      for (let i = 0; i < 10; i++) {
-        ctx.beginPath();
-        ctx.ellipse(40 + i * 40, 20 + (i % 3) * 30, 15, 30, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
       ctx.strokeStyle = '#c8a45c';
       ctx.lineWidth = 3;
       ctx.strokeRect(8, 8, 384, 224);
-      ctx.shadowColor = '#e8d49a';
-      ctx.shadowBlur = 10;
-      ctx.strokeStyle = '#e8d49a';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(10, 10, 380, 220);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
       ctx.fillStyle = '#e8d49a';
       ctx.font = 'bold 26px "宋体", "SimSun", "Songti SC", serif';
       ctx.textAlign = 'center';
       ctx.fillText('粽王争霸 · 身份卡', 200, 55);
-      ctx.strokeStyle = '#c8a45c';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(60, 70);
-      ctx.lineTo(340, 70);
-      ctx.stroke();
       ctx.fillStyle = '#f0ecd8';
       ctx.font = '20px "宋体", "SimSun", serif';
       ctx.fillText('我最爱：' + flavorName, 200, 105);
-      ctx.font = '18px "宋体", "SimSun", serif';
-      ctx.fillText('当前排名：第 ' + rank + ' 名', 200, 140);
+      ctx.fillText('排名：第 ' + rank + ' 名', 200, 140);
       ctx.fillText('票数：' + votes + ' 票', 200, 170);
       ctx.fillStyle = '#b89b6b';
       ctx.font = '14px "宋体", "SimSun", serif';
@@ -726,26 +714,27 @@
 
     document.getElementById('gc').addEventListener('click', () => {
       if (!uf) return alert('请先投票给你喜欢的口味');
-      const flavor = fl.find(f => f.name === uf);
+      const flavor = flavors.find(f => f.name === uf);
       if (!flavor) return;
-      const sorted = [...fl].sort((a,b) => b.votes - a.votes);
+      const sorted = [...flavors].sort((a,b) => b.votes - a.votes);
       const rank = sorted.findIndex(f => f.name === uf) + 1;
       const imgData = drawIdentityCard(uf, flavor.votes, rank);
       cardImage.src = imgData;
       cardModal.style.display = 'flex';
     });
 
-    closeCardBtn.addEventListener('click', () => {
-      cardModal.style.display = 'none';
-    });
-    cardModal.addEventListener('click', (e) => {
-      if (e.target === cardModal) cardModal.style.display = 'none';
-    });
+    closeCardBtn.addEventListener('click', () => cardModal.style.display = 'none');
+    cardModal.addEventListener('click', (e) => { if (e.target === cardModal) cardModal.style.display = 'none'; });
 
-    loadVotes().then(votes => {
-      fl = votes;
-      uu();
-    });
+    // ---------- 初始化页面 ----------
+    (async function init() {
+      flavors = getDefaultFlavors();
+      updateUI();
+      loadVotes().then((loadedFlavors) => {
+        flavors = loadedFlavors;
+        updateUI();
+      });
+    })();
   </script>
 </body>
 </html>
