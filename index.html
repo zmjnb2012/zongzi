@@ -428,9 +428,29 @@
     ];
     
     let flavors = baseFlavors.map(f => ({...f,votes:0}));
-    let remainingVotes = 3, isConnected = false, isVoting = false;
+    let isConnected = false, isVoting = false;
     let danmakuSeenTs = Date.now();  // 弹幕同步：只显示这条时间戳之后的全网新弹幕
     let fileSha = null;              // GitHub 文件的 SHA，更新时需要（乐观并发）
+
+    // ===== 投票次数按天持久化（刷新/重开不重置，第二天才重置为3票）=====
+    function getVoteDate() { return new Date().toDateString(); }
+    function loadRemainingVotes() {
+      const today = getVoteDate();
+      const savedDate = localStorage.getItem('vote_date');
+      if(savedDate !== today) {
+        // 新的一天，重置为3票
+        localStorage.setItem('vote_date', today);
+        localStorage.setItem('remaining_votes', '3');
+        return 3;
+      }
+      const v = parseInt(localStorage.getItem('remaining_votes') || '3', 10);
+      return isNaN(v) ? 3 : v;
+    }
+    function saveRemainingVotes() {
+      localStorage.setItem('remaining_votes', String(remainingVotes));
+      localStorage.setItem('vote_date', getVoteDate());
+    }
+    let remainingVotes = loadRemainingVotes();
     
     function getTodayAdCount() {
       const today = new Date().toDateString();
@@ -596,6 +616,7 @@
           const flavorId = this.dataset.id;
           if(await castVote(flavorId)) {
             remainingVotes--;
+            saveRemainingVotes();
             const flavor = flavors.find(f=>f.id === flavorId);
             showDanmaku(`我投了${flavor.name}一票！`, '#ffd700');
           }
@@ -610,10 +631,12 @@
         alert('今日广告次数已用完（每日限5次）\n明天再来吧！');
         return;
       }
-      alert(`📺 广告播放完成\n✅ 获得1票！\n今日剩余 ${4-count} 次`);
       addAdCount();
       remainingVotes++;
+      saveRemainingVotes();
       updateVotesOnly();
+      // 打开广告视频页面（新标签页，看完回来票已加上）
+      window.open('https://m.tb.cn/h.RMhE9K0', '_blank');
     });
 
     document.getElementById('sendDanmaku').addEventListener('click', async function() {
