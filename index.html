@@ -628,15 +628,30 @@
     document.getElementById('wa').addEventListener('click', function() {
       const count = getTodayAdCount();
       if(count >= 5) {
-        alert('今日广告次数已用完（每日限5次）\n明天再来吧！');
+        alert('今日次数已用完（每日限5次）\n明天再来吧！');
         return;
       }
-      addAdCount();
-      remainingVotes++;
-      saveRemainingVotes();
-      updateVotesOnly();
-      // 打开广告视频页面（新标签页，看完回来票已加上）
+      const btn = this;
+      btn.disabled = true;
+      let sec = 5;
+      btn.textContent = `⏳ ${sec}s 后获得1票...`;
+      // 同时打开广告页面
       window.open('https://m.tb.cn/h.RMhE9K0', '_blank');
+      const timer = setInterval(() => {
+        sec--;
+        if(sec > 0) {
+          btn.textContent = `⏳ ${sec}s 后获得1票...`;
+        } else {
+          clearInterval(timer);
+          addAdCount();
+          remainingVotes++;
+          saveRemainingVotes();
+          updateVotesOnly();
+          btn.textContent = '📺 看广告 +1票';
+          btn.disabled = false;
+          alert('✅ 获得1票！');
+        }
+      }, 1000);
     });
 
     document.getElementById('sendDanmaku').addEventListener('click', async function() {
